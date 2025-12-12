@@ -43,7 +43,7 @@ class MorseSequence:
     def __init__(self, sequence: str, unit_length: float = 0.5, set: function = None, unset: function = None, loop: bool = False):
         self.sequence = sequence
         self.unit_length = unit_length
-        self.__generate_step_sequence()
+        self.step_sequence = self.__generate_step_sequence()
         self.sequence_length = len(self.step_sequence)
         self.set_function = set
         self.unset_function = unset
@@ -55,7 +55,7 @@ class MorseSequence:
     def define_unset_function(self, fn: function):
         self.unset_function = fn
      
-    def run(self, set: function = None, unset: function = None, always_unset: bool = False):
+    def run(self, set: function = None, unset: function = None):
         if not set:
             if not self.set_function:
                 raise NoFunctionDefinedException("set not defined")
@@ -69,25 +69,10 @@ class MorseSequence:
         if not self.sequence:
             return
         
-        for char in list(self.sequence):
-            if char not in ".-_|":
-                raise BadSequenceException(f"Found {char} in {self.sequence}")
-
-            if char in ".-":
-                set()
-            
-            if char in ".":
-                time.sleep(self.unit_length * 1)
-            elif char in "-_":
-                time.sleep(self.unit_length * 3)
-            elif char in "|":
-                time.sleep(self.unit_length * 7)
-            
-            if char in ".-":
-                unset()
-                time.sleep(self.unit_length)
-            elif always_unset:
-                unset()
+        step = 0
+        while self.run_step(step):
+            time.sleep(self.unit_length)
+            step += 1
 
     def run_step(self, step: int, set: function = None, unset: function = None):
         if not set:
@@ -104,7 +89,7 @@ class MorseSequence:
             if self.loop:
                 step = step % self.sequence_length
             else:
-                return True
+                return False
         
         instruction = self.step_sequence[step]
 
@@ -113,7 +98,7 @@ class MorseSequence:
         if instruction == "down":
             unset()
 
-        return False
+        return True
 
 
     def __generate_step_sequence(self):
@@ -126,9 +111,9 @@ class MorseSequence:
             if char == "_":
                 steps.extend(["wait"] * 4)
             if char == "|":
-                steps.extend(["wait"] * 8)
+                steps.extend(["wait"] * 7)
 
-        self.step_sequence = steps
+        return steps
 
     def __str__(self) -> str:
         return self.sequence.replace("_"," ").replace("|","   ")
@@ -154,7 +139,7 @@ class MultiSequenceRunner:
         while len(current_sequences):
             seqs_to_remove = []
             for i,seq in enumerate(current_sequences):
-                if seq.run_step(current_step):
+                if not seq.run_step(current_step):
                     seqs_to_remove.append(i)
             
             if seqs_to_remove:
@@ -170,12 +155,17 @@ class MorseGenerator:
 
     # public
 
-    def generate(self, input: str) -> MorseSequence:        
+    def generate(self, input: str, set: function = None, unset: function = None) -> MorseSequence:        
         words = input.split()
         sequence = [ self.__convert_word(word) for word in words ]
         sequence = [ word for word in sequence if word ]
 
-        return MorseSequence(sequence="|".join(sequence), unit_length=self.unit_length)
+        return MorseSequence(
+            sequence="|".join(sequence),
+            unit_length=self.unit_length,
+            set=set,
+            unset=unset
+        )
     
     # private
 
