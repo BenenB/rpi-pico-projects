@@ -85,7 +85,7 @@ class MorseSequence:
                 raise NoFunctionDefinedException("unset not defined")
             unset = self.unset_function
 
-        if step > self.sequence_length:
+        if step >= self.sequence_length:
             if self.loop:
                 step = step % self.sequence_length
             else:
@@ -146,6 +146,7 @@ class MultiSequenceRunner:
                 current_sequences = [seq for i,seq in enumerate(current_sequences) if not i in seqs_to_remove ]
 
             current_step += 1
+            time.sleep(self.unit_length)
 
 class MorseGenerator:
     def __init__(self, bps: float = 3):

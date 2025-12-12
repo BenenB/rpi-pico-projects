@@ -15,21 +15,18 @@ if __name__ == "__main__":
         set=(lambda: red.value(1)),
         unset=(lambda: red.value(0))
     )
-    red_seq.name = "Red"
     
     green_seq = generator.generate(
         "GREEN says Hello world",
         set=(lambda: green.value(1)),
         unset=(lambda: green.value(0))
     )
-    green_seq.name = "Green"
     
     yellow_seq = generator.generate(
         "Deireann BUI dia duit ar domhan",
         set=(lambda: yellow.value(1)),
         unset=(lambda: yellow.value(0))
     )
-    yellow_seq.name = "Yellow"
     
     runner = MultiSequenceRunner(bps=8)
     runner.add_sequence(red_seq)
