@@ -23,7 +23,6 @@ class UnsupportedCharacterException(Exception):
     def __str__(self):
         return f"UnsupportedCharacter: {self.msg}"
 
-
 class BadSequenceException(Exception):
     def __init__(self, message: str = ""):
         self.msg = message
@@ -90,7 +89,7 @@ class MorseSequence:
                 step = step % self.sequence_length
             else:
                 return False
-        
+
         instruction = self.step_sequence[step]
 
         if instruction == "up":
@@ -106,12 +105,14 @@ class MorseSequence:
         for char in list(self.sequence):
             if char == ".":
                 steps.extend(["up","down"])
-            if char == "-":
+            elif char == "-":
                 steps.extend(["up","wait","wait","down"])
-            if char == "_":
+            elif char == "_":
                 steps.extend(["wait"] * 4)
-            if char == "|":
+            elif char == "|":
                 steps.extend(["wait"] * 7)
+            else:
+                raise BadSequenceException(f"found {char} in {self.sequence}")
 
         return steps
 
