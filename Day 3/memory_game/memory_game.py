@@ -152,7 +152,11 @@ class MemoryGame:
         unit_length = 1/bps
         
         if self.mode == "build" and self.current_sequence:
-            self.current_sequence.append(random.randint(0,self.options-1))
+            change =  sequence_length - len(self.current_sequence)
+            if change > 0:
+                self.current_sequence.extend([random.randint(0,self.options-1) for i in range(change)])
+            if change < 0: 
+                self.current_sequence = self.current_sequence[:change]
         else:
             self.current_sequence = [ random.randint(0,self.options-1) for i in range(sequence_length) ]
         
