@@ -1,25 +1,30 @@
 import time
 import random
 
+class ControllerException(Exception):
+    def __init__(self, msg: str = ""):
+        self.message = msg
+
+    def __str__(self):
+        return f"ControllerException: {self.message}"
 
 class MemoryGameLight:
     def __init__(self, on: function, off: function):
         if not (on and off):
-            raise ValueError("An 'on' and 'off' function must be defined for each light")
+            raise ControllerException("An 'on' and 'off' function must be defined for each light")
         self.on = on
         self.off = off
 
 class MemoryGameSwitch:
     def __init__(self, status: function):
         if not status:
-            raise ValueError("A 'status' function must be defined for each switch")
+            raise ControllerException("A 'status' function must be defined for each switch")
         self.status = status
     
-
-class MemoryGameConfig:
+class MemoryGameController:
     def __init__(self, leds: list[MemoryGameLight], switches: list[MemoryGameSwitch], configure: bool = True):
-        if len(leds) != len(switches):
-            raise ValueError("The number of switches must match the number of lights")
+        if len(leds) > len(switches):
+            raise ControllerException("There must be at least one switch for each led configured")
         self.leds = leds
         self.switches = switches
         self.configured = False
@@ -37,7 +42,6 @@ class MemoryGameConfig:
             selected = None
             while selected is None:
                 switch = self.listen_for_all_switches()
-                #print(switch)
                 if self.switches[switch] in self.button_map.values():
                     print("You cannot use the same button for multiple lights")
                 else:
@@ -46,13 +50,12 @@ class MemoryGameConfig:
             led.off()
             self.light_map[i] = led
             self.button_map[i] = self.switches[selected]
-            #print(f"configured {i}")
         print("Setup complete")
         self.configured = True
 
     def listen_for_all_switches(self):
         if len(self.switches) < 1:
-            raise ValueError("No switches to listen for")
+            raise ControllerException("No switches to listen for")
         
         switch_tuples = None
         if self.configured:
@@ -68,28 +71,45 @@ class MemoryGameConfig:
             time.sleep(0.1)
                 
     def wait_for_clear(self):
-        while any([sw.status() for sw in self.switches]):
-            continue
+        clears = 0
+        while clears < 2:
+            if any([sw.status() for sw in self.switches]):
+                clears = 0
+                continue
+            else:
+                time.sleep(0.1)
+                clears += 1
         
     def clear_leds(self):
         [led.off() for led in self.leds]
+
+
+class GameplayException(Exception):
+    def __init__(self, msg: str = ""):
+        self.message = msg
+
+    def __str__(self):
+        return f"GameplayException: {self.message}"
                 
 class MemoryGame:
-    def __init__(self, config: MemoryGameConfig, starting_level: int = 3, starting_bps: int = 2, tempo_mod: int = 5):
-        self.config = config
+    def __init__(self, controller: MemoryGameController, starting_level: int = 3, starting_bps: int = 2, tempo_mod: int = 5, mode: str = "build"):
+        self.controller = controller
         self.starting_level = starting_level
         self.starting_bps = starting_bps
         self.tempo_mod = tempo_mod
-        self.options = len(config.switches)
+        self.mode = mode
+        self.current_sequence = []
+        self.options = len(controller.switches)
         
     
     def play(self):
-        if not self.config.configured:
-            raise ValueError(f"Game controller not configured")
+        if not self.controller.configured:
+            raise GameplayException(f"Game controller not configured")
         self.level = self.starting_level
         self.lives = 1
         
         while self.lives > 0:
+            time.sleep(1)
             result = self.run_level(self.level)
             if result:
                 self.level_complete(1 + self.level - self.starting_level)
@@ -104,12 +124,14 @@ class MemoryGame:
     def run_level(self, level: int):
         true_level = level - self.starting_level
         if true_level < 0:
-            raise ValueError("Level is less than starting level")
+            raise GameplayException("Level is less than starting level")
         
+        # Generate level settings        
         if (true_level % self.tempo_mod):
             print(f"Level: {true_level + 1}")
         else:
             print(f"Level: {true_level + 1} -- tempo increased!")
+            self.current_sequence = []
             
         tempo_bumps = int(true_level/self.tempo_mod)
         
@@ -118,12 +140,13 @@ class MemoryGame:
         
         unit_length = 1/bps
         
-        sequence = [ random.randint(0,self.options-1) for i in range(sequence_length) ]
+        if self.mode == "build" and self.current_sequence:
+            self.current_sequence.append(random.randint(0,self.options-1))
+        else:
+            self.current_sequence = [ random.randint(0,self.options-1) for i in range(sequence_length) ]
         
-        time.sleep(1)
-        
-        for i in sequence:
-            led = self.config.light_map.get(i)
+        for i in self.current_sequence:
+            led = self.controller.light_map.get(i)
             if not led:
                 raise ValueError(f"No led found for light {i}")
             led.on()
@@ -131,11 +154,11 @@ class MemoryGame:
             led.off()
             time.sleep(unit_length)
             
-        for i in sequence:
-            player_input = self.config.listen_for_all_switches()
-            self.config.light_map.get(player_input).on()
-            self.config.wait_for_clear()
-            self.config.light_map.get(player_input).off()
+        for i in self.current_sequence:
+            player_input = self.controller.listen_for_all_switches()
+            self.controller.light_map.get(player_input).on()
+            self.controller.wait_for_clear()
+            self.controller.light_map.get(player_input).off()
             if player_input != i:
                 time.sleep(0.3)
                 return False

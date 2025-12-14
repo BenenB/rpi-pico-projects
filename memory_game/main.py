@@ -1,5 +1,5 @@
 from machine import Pin
-from memory_game import MemoryGame,MemoryGameConfig,MemoryGameLight,MemoryGameSwitch
+from memory_game import MemoryGame,MemoryGameController,MemoryGameLight,MemoryGameSwitch
 
 if __name__ == "__main__":
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         off=(lambda: red.value(0))
     )
     
-    config = MemoryGameConfig(
+    config = MemoryGameController(
         leds = [light_1, light_2, light_3],
         switches = [switch_1, switch_2, switch_3]
     )
