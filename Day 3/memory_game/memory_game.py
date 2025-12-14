@@ -75,13 +75,13 @@ class MemoryGameController:
         while clears < 2:
             if any([sw.status() for sw in self.switches]):
                 clears = 0
-                continue
             else:
-                time.sleep(0.1)
                 clears += 1
+                
+            time.sleep(0.1)
         
     def clear_leds(self):
-        [led.off() for led in self.leds]
+        [ led.off() for led in self.leds ]
         
     def wheel_leds(self, delay: float = 0.2):
         [ (led.on(),time.sleep(delay),led.off()) for led in self.leds ]
@@ -103,7 +103,7 @@ class GameplayException(Exception):
         return f"GameplayException: {self.message}"
                 
 class MemoryGame:
-    def __init__(self, controller: MemoryGameController, starting_level: int = 3, starting_bps: int = 2, tempo_mod: int = 5, mode: str = "build"):
+    def __init__(self, controller: MemoryGameController, starting_level: int = 3, starting_bps: int = 2, tempo_mod: int = 3, mode: str = "build"):
         self.controller = controller
         self.starting_level = starting_level
         self.starting_bps = starting_bps
@@ -179,17 +179,17 @@ class MemoryGame:
     def level_complete(self, level: int):
         print(f"Finished level {level}")
         time.sleep(0.2)
-        [ self.controller.wheel_leds() for i in range(2)]
+        [ self.controller.wheel_leds() for i in range(2) ]
     
     def lose_life(self): 
         print(f"Uh oh! Lives remaining {self.lives}")
         time.sleep(0.2)
-        [ self.controller.flash_leds() for i in range(2)]       
+        [ self.controller.flash_leds() for i in range(2) ]       
     
     def game_over(self):
         print("Game Over!")
         time.sleep(0.2)
-        [ self.controller.flash_leds() for i in range(4)]
+        [ self.controller.flash_leds() for i in range(4) ]
             
         
                 
