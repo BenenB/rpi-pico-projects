@@ -82,6 +82,17 @@ class MemoryGameController:
         
     def clear_leds(self):
         [led.off() for led in self.leds]
+        
+    def wheel_leds(self, delay: float = 0.2):
+        [ (led.on(),time.sleep(delay),led.off()) for led in self.leds ]
+        time.sleep(delay)
+        
+    def flash_leds(self, delay: float = 0.2):        
+        [ led.on() for led in self.leds ]
+        time.sleep(delay)
+        [ led.off() for led in self.leds ]
+        time.sleep(delay)
+        
 
 
 class GameplayException(Exception):
@@ -148,7 +159,7 @@ class MemoryGame:
         for i in self.current_sequence:
             led = self.controller.light_map.get(i)
             if not led:
-                raise ValueError(f"No led found for light {i}")
+                raise ControllerException(f"No led found for light {i}")
             led.on()
             time.sleep(unit_length)
             led.off()
@@ -167,12 +178,18 @@ class MemoryGame:
     
     def level_complete(self, level: int):
         print(f"Finished level {level}")
+        time.sleep(0.2)
+        [ self.controller.wheel_leds() for i in range(2)]
     
-    def lose_life(self):
+    def lose_life(self): 
         print(f"Uh oh! Lives remaining {self.lives}")
+        time.sleep(0.2)
+        [ self.controller.flash_leds() for i in range(2)]       
     
     def game_over(self):
         print("Game Over!")
+        time.sleep(0.2)
+        [ self.controller.flash_leds() for i in range(4)]
             
         
                 

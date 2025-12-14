@@ -47,12 +47,6 @@ class MorseSequence:
         self.set_function = set
         self.unset_function = unset
         self.loop = loop
-
-    def define_set_function(self, fn: function):
-        self.set_function = fn
-
-    def define_unset_function(self, fn: function):
-        self.unset_function = fn
      
     def run(self, set: function = None, unset: function = None):
         if not set:
@@ -127,7 +121,7 @@ class MultiSequenceRunner:
     def __init__(self, bps: float = 3):
         self.sequences = []
         if bps <= 0:
-            raise ValueError(f"Generator bps must be greater than 0, recieved {bps}")
+            raise ValueError(f"Runner bps must be greater than 0, recieved {bps}")
         self.unit_length = 1/bps
 
     def add_sequence(self, sequence: MorseSequence):
