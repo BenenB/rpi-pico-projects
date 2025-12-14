@@ -1,4 +1,4 @@
-### Configuration
+## Configuration
 
 Using the components and setup from 12 days of codemas day 3:
 
@@ -13,7 +13,7 @@ This project requires the file `memory_game.py` to be preloaded onto the device 
  - Choose Connected Device and name the file `memory_game.py`
 
 
-### Design
+## Design
 
 The code assumes very little about the existing setup, for example:
 
